@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MU_demia{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% load static %}
+</head>
+<body class="bg-gray-50">
+ <!-- Navigation -->
+<nav class="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <!-- Logo and Primary Nav -->
+            <div class="flex">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="{% url 'core:home' %}" class="flex items-center">
+                        <span class="text-2xl font-bold text-white">MU_demia</span>
+                    </a>
+                </div>
+                
+                <!-- Primary Nav Menu -->
+                <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                    <a href="{% url 'core:home' %}" 
+                       class="inline-flex items-center px-1 pt-1 text-white hover:text-gray-200 border-b-2 border-transparent hover:border-white">
+                        Home
+                    </a>
+                    <a href="#" 
+                       class="inline-flex items-center px-1 pt-1 text-white hover:text-gray-200 border-b-2 border-transparent hover:border-white">
+                        Courses
+                    </a>
+                    <a href="#" 
+                       class="inline-flex items-center px-1 pt-1 text-white hover:text-gray-200 border-b-2 border-transparent hover:border-white">
+                        About
+                    </a>
+                    <a href="#" 
+                       class="inline-flex items-center px-1 pt-1 text-white hover:text-gray-200 border-b-2 border-transparent hover:border-white">
+                        Contact
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right side menu -->
+            <div class="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
+                {% if user.is_authenticated %}
+                    <!-- User Dropdown -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="flex items-center space-x-2 text-white hover:text-gray-200">
+                            <span>{{ user.username }}</span>
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <!-- Dropdown menu -->
+                        <div x-show="open" 
+                             @click.away="open = false"
+                             class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5"
+                             role="menu">
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                            <form action="{% url 'accounts:logout' %}" method="post" class="block">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-gray-100">
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-gray-50">
+                        Login
+                    </a>
+                    <a href="{% url 'accounts:signup' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600">
+                        Sign Up
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Mobile menu button -->
+            <div class="flex items-center sm:hidden">
+                <button type="button" 
+                        class="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-gray-200 hover:bg-blue-700"
+                        @click="mobileMenu = !mobileMenu"
+                        aria-expanded="false">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div class="sm:hidden" x-show="mobileMenu" @click.away="mobileMenu = false">
+        <div class="pt-2 pb-3 space-y-1">
+            <a href="{% url 'core:home' %}" 
+               class="block pl-3 pr-4 py-2 text-white hover:bg-blue-700">
+                Home
+            </a>
+            <a href="#" 
+               class="block pl-3 pr-4 py-2 text-white hover:bg-blue-700">
+                Courses
+            </a>
+            <a href="#" 
+               class="block pl-3 pr-4 py-2 text-white hover:bg-blue-700">
+                About
+            </a>
+            <a href="#" 
+               class="block pl-3 pr-4 py-2 text-white hover:bg-blue-700">
+                Contact
+            </a>
+        </div>
+        {% if user.is_authenticated %}
+            <div class="pt-4 pb-3 border-t border-blue-700">
+                <div class="flex items-center px-4">
+                    <div class="flex-shrink-0">
+                        <span class="text-white">{{ user.username }}</span>
+                    </div>
+                </div>
+                <div class="mt-3 space-y-1">
+                    <a href="#" class="block px-4 py-2 text-white hover:bg-blue-700">Profile</a>
+                    <a href="#" class="block px-4 py-2 text-white hover:bg-blue-700">Settings</a>
+                    <form action="{% url 'accounts:logout' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full text-left px-4 py-2 text-white hover:bg-blue-700">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <div class="pt-4 pb-3 border-t border-blue-700 space-y-1">
+                <a href="{% url 'accounts:login' %}" 
+                   class="block px-4 py-2 text-white hover:bg-blue-700">
+                    Login
+                </a>
+                <a href="{% url 'accounts:signup' %}" 
+                   class="block px-4 py-2 text-white hover:bg-blue-700">
+                    Sign Up
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</nav>
+
+
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="max-w-6xl mx-auto px-4 mt-4">
+            {% for message in messages %}
+                <div class="p-4 rounded-md {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white shadow-lg mt-8">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <p class="text-center text-gray-500 text-sm">
+                © 2024 MU_demia. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+
+    <!-- Add Alpine.js for dropdown functionality -->
+<script src="//unpkg.com/alpinejs" defer></script>
+
+<!-- Add this script right after Alpine.js -->
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('navigation', () => ({
+            mobileMenu: false
+        }))
+    })
+</script>
+</body>
+</html>
