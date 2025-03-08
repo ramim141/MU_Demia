@@ -3,103 +3,198 @@
 
 {% block title %}{{ note.title }} - MU_demia{% endblock %}
 
+{% block extra_head %}
+<!-- Add Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+<!-- Add custom CSS -->
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container mx-auto px-4">
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <!-- Note Header -->
-        <div class="p-6 border-b">
-            <div class="flex items-center justify-between mb-4">
-                <h1 class="text-3xl font-bold text-gray-900">{{ note.title }}</h1>
-                <div class="flex items-center space-x-3">
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'notes:download_note' note.pk %}" 
-                           class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                            <i class="fas fa-download mr-2"></i> Download
-                            <span class="ml-2 text-sm">({{ note.download_count }})</span>
-                        </a>
-                        {% if user == note.author or user.is_staff %}
-                            <a href="{% url 'notes:edit_note' note.pk %}" 
-                               class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-                                <i class="fas fa-edit mr-2"></i> Edit
-                            </a>
-                            <a href="{% url 'notes:delete_note' note.pk %}" 
-                               class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-                                <i class="fas fa-trash-alt mr-2"></i> Delete
-                            </a>
-                        {% endif %}
-                    {% endif %}
-                </div>
-            </div>
-            <div class="flex items-center text-sm text-gray-500 mb-4">
-                <img src="{% if note.author.avatar %}{{ note.author.avatar.url }}{% else %}https://ui-avatars.com/api/?name={{ note.author.username }}{% endif %}" 
-                     alt="{{ note.author.username }}" 
-                     class="w-8 h-8 rounded-full mr-2">
-                <div>
-                    <p>Uploaded by <span class="font-semibold">{{ note.author.username }}</span></p>
-                    <p>{{ note.created_at|date:"F j, Y" }}</p>
-                </div>
-                <div class="ml-auto flex items-center space-x-4">
-                    <span><i class="fas fa-eye mr-1"></i> {{ note.view_count }} views</span>
-                    <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
-                        {{ note.subject.name }}
-                    </span>
-                </div>
-            </div>
-        </div>
+<!-- Add PDF.js scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="{% static 'js/scripts.js' %}"></script>
 
-        <!-- Note Description -->
-        <div class="p-6 border-b">
-            <h2 class="text-xl font-semibold mb-4">Description</h2>
-            <div class="prose max-w-none">
-                {{ note.description|linebreaks }}
-            </div>
-        </div>
-
-        <!-- Comments Section -->
-        <div class="p-6">
-            <h2 class="text-xl font-semibold mb-4">Comments ({{ comments.count }})</h2>
-            
-            {% if user.is_authenticated %}
-            <form method="post" class="mb-8">
-                {% csrf_token %}
-                <div class="mb-4">
-                    <label for="content" class="block text-sm font-medium text-gray-700 mb-2">Add a comment</label>
-                    <textarea name="content" id="content" rows="3" required
-                              class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              placeholder="Write your comment here..."></textarea>
-                </div>
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                    Post Comment
-                </button>
-            </form>
-            {% else %}
-            <div class="bg-gray-50 rounded-md p-4 mb-8">
-                <p class="text-gray-600">Please <a href="{% url 'accounts:login' %}" class="text-blue-600 hover:underline">log in</a> to post comments.</p>
-            </div>
-            {% endif %}
-
-            <!-- Comments List -->
-            <div class="space-y-6">
-                {% for comment in comments %}
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <div class="flex items-start space-x-3">
-                        <img src="{% if comment.author.avatar %}{{ comment.author.avatar.url }}{% else %}https://ui-avatars.com/api/?name={{ comment.author.username }}{% endif %}" 
-                             alt="{{ comment.author.username }}" 
-                             class="w-10 h-10 rounded-full">
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between">
-                                <h3 class="font-medium text-gray-900">{{ comment.author.username }}</h3>
-                                <span class="text-sm text-gray-500">{{ comment.created_at|date:"F j, Y" }}</span>
-                            </div>
-                            <div class="mt-2 text-gray-700">
-                                {{ comment.content|linebreaks }}
-                            </div>
+<div class="container mx-auto px-4 py-8 font-['Inter']">
+    <div class="rounded-xl  overflow-hidden ">
+        <!-- Title and Actions Section -->
+        <div class="p-8 content-section">
+            <div class="flex justify-between items-start mb-4">
+                <div class="space-y-4 px-4">
+                    <h1 class="note-title text-4xl font-bold mb-3">{{ note.title }}</h1>
+                    <h2 class="text-2xl text-blue-600 font-semibold mb-4">{{ note.subject.name }}</h2>
+                    <div class="prose prose-lg text-gray-700 mb-6 text-xl">{{note.description}}</div>
+                    
+                    <div class="flex items-center justify-content-start  px-4 space-x-4 ">
+                        <img src="{% if note.author.avatar %}{{ note.author.avatar.url }}{% else %}https://ui-avatars.com/api/?name={{ note.author.username }}&background=3b82f6&color=fff{% endif %}" 
+                             alt="{{ note.author.username }}" 
+                             class="w-16 h-16 rounded-full border-4 border-white shadow-lg">
+                        <div>
+                            <p class="text-lg font-semibold text-gray-900">Uploaded by {{ note.author.first_name }} {{ note.author.last_name }}</p>
+                            <p class="text-blue-600">{{ note.created_at|date:"F j, Y" }}</p>
                         </div>
                     </div>
                 </div>
-                {% empty %}
-                <p class="text-gray-500 text-center py-4">No comments yet. Be the first to comment!</p>
-                {% endfor %}
+
+                <div class="flex flex-col space-y-3">
+                    <a href="{% url 'notes:note_download' note.pk %}" 
+                       class="action-button inline-flex items-center justify-center p-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-lg rounded-full hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md">
+                        <i class="fas fa-download"></i>
+                    </a>
+                    {% if user == note.author or user.is_staff %}
+                    <a href="{% url 'notes:edit_note' note.pk %}" 
+                       class="action-button inline-flex items-center justify-center p-3 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 text-lg rounded-full hover:from-blue-100 hover:to-blue-200 transition-all duration-300 shadow-md">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'notes:delete_note' note.pk %}" 
+                       class="action-button inline-flex items-center justify-center p-3 bg-gradient-to-r from-red-50 to-red-100 text-red-700 text-lg rounded-full hover:from-red-100 hover:to-red-200 transition-all duration-300 shadow-md">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex items-center justify-end mt-6">
+                <span class="stats-badge flex items-center px-4 py-2 text-white rounded-full">
+                    <i class="fas fa-eye mr-2"></i>
+                    {{ note.view_count }} views
+                </span>
+            </div>
+
+            <!-- PDF Viewer Section -->
+            <div class=" pdf-container rounded-xl p-4 border border-gray-200">
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-900 font-['Poppins']">PDF Viewer</h2>
+                    <div class="flex items-center space-x-4 mt-2">
+                        <button id="zoomOut" class="control-button px-4 py-2 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-lg hover:from-gray-200 hover:to-gray-300 transition-all duration-300 shadow-sm">
+                            <i class="fas fa-search-minus"></i>
+                        </button>
+                        <button id="zoomIn" class="control-button px-4 py-2 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-lg hover:from-gray-200 hover:to-gray-300 transition-all duration-300 shadow-sm">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                {% if note.file %}
+                <!-- PDF Navigation Controls -->
+                <div class="flex items-center justify-between mb-6 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+                    <div class="flex items-center space-x-4">
+                        <button id="prev" class="control-button p-3  rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-sm">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button id="next" class="control-button p-3  rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-sm">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="px-6 py-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200 shadow-sm">
+                        <span class="text-gray-700 font-semibold">
+                            Page: <span id="page_num" class="font-bold text-blue-600">0</span> / <span id="page_count" class="font-bold text-blue-600">0</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- PDF Canvas Container -->
+                <div class="relative w-full bg-white rounded-xl  border border-gray-200" style="height: 800px; max-height: calc(100vh - 300px);">
+                    <div class="absolute inset-0 overflow-auto" id="pdf-container" style="scroll-behavior: smooth;">
+                        <div class="relative min-h-full min-w-full flex items-center justify-center p-4">
+                            <canvas id="pdf-canvas" data-pdf-url="{{ note.file.url }}"></canvas>
+                        </div>
+                    </div>
+                    <div id="pdf-loader" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 backdrop-blur-sm">
+                        <div class="text-center">
+                            <div class="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                            <p class="text-lg text-gray-700 font-semibold">Loading PDF...</p>
+                        </div>
+                    </div>
+                    <div id="pdf-error" class="hidden absolute inset-0 flex items-center justify-center bg-white">
+                        <div class="text-center">
+                            <i class="fas fa-exclamation-circle text-red-500 text-4xl mb-4"></i>
+                            <p class="text-lg text-red-600 font-semibold">Error loading PDF. Please try again.</p>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="w-full h-[400px] flex items-center justify-center bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+                    <div class="text-center">
+                        <i class="fas fa-file-pdf text-gray-400 text-6xl mb-4"></i>
+                        <p class="text-lg text-gray-500 font-semibold">No PDF file available</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Comments Section -->
+            <div class="mt-12 comment-section rounded-xl p-8 border border-gray-200">
+                <h2 class="text-xl font-bold mb-6 pb-4 border-b border-gray-200 font-['Poppins']">
+                    Comments <span class="text-blue-600">({{ comments.count }})</span>
+                </h2>
+                
+                {% if user.is_authenticated %}
+                <div class="mb-8 p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900">Add comment</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="space-y-4">
+                            <div>
+                                <label for="rating" class="block text-sm font-medium text-gray-700 mb-1">Rating (1-5)</label>
+                                <select name="rating" id="rating" required class="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="5">5 - Excellent</option>
+                                    <option value="4">4 - Very Good</option>
+                                    <option value="3">3 - Good</option>
+                                    <option value="2">2 - Fair</option>
+                                    <option value="1">1 - Poor</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="content" class="block text-sm font-medium text-gray-700 mb-1">Your Comment</label>
+                                <textarea name="content" id="content" rows="3" required
+                                          class="w-full px-4 py-3 text-gray-700 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                                          placeholder="Write your comment here..."></textarea>
+                            </div>
+                            <button type="submit" 
+                                    class="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-lg font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md">
+                               Submit Comment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                {% else %}
+                <div class="mb-8 p-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                    <p class="text-lg text-blue-800 font-semibold">Please <a href="{% url 'accounts:login' %}" class="underline hover:text-blue-600 transition-colors duration-300">log in</a> to post comments.</p>
+                </div>
+                {% endif %}
+
+                <div class="space-y-6">
+                    {% for comment in comments %}
+                    <div class="comment-box bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6 border border-gray-200 shadow-sm transition-all duration-300">
+                        <div class="flex items-start space-x-4">
+                            <img src="{% if comment.author.avatar %}{{ comment.author.avatar.url }}{% else %}https://ui-avatars.com/api/?name={{ comment.author.username }}&background=3b82f6&color=fff{% endif %}" 
+                                 alt="{{ comment.author.username }}" 
+                                 class="w-12 h-12 rounded-full border-2 border-white shadow-md">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
+                                    <h3 class="text-lg font-semibold text-gray-900">{{ comment.author.username }}</h3>
+                                    <div class="flex items-center space-x-4">
+                                        <div class="flex items-center">
+                                            {% for i in "12345"|make_list %}
+                                                <i class="fas fa-star {% if forloop.counter <= comment.rating %}text-yellow-400{% else %}text-gray-300{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <span class="text-sm text-blue-600">{{ comment.created_at|date:"F j, Y" }}</span>
+                                    </div>
+                                </div>
+                                <p class="text-gray-700 leading-relaxed">{{ comment.content }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+                        <i class="fas fa-comments text-gray-400 text-4xl mb-4"></i>
+                        <p class="text-lg text-gray-500 font-semibold">No comments yet. Be the first to comment!</p>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>

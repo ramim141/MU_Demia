@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Subject(models.Model):
     name = models.CharField(max_length=100)
@@ -38,6 +39,10 @@ class Comment(models.Model):
     note = models.ForeignKey(Note, on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='note_comments')
     content = models.TextField()
+    rating = models.IntegerField(default=5, validators=[
+        MinValueValidator(1),
+        MaxValueValidator(5)
+    ])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

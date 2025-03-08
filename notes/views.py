@@ -23,7 +23,7 @@ def note_list(request):
             Q(subject__name__icontains=search)
         )
     
-    paginator = Paginator(notes, 12)  # Show 12 notes per page
+    paginator = Paginator(notes, 5)  # Show 12 notes per page
     page_number = request.GET.get('page')
     notes = paginator.get_page(page_number)
     
@@ -65,13 +65,22 @@ def note_detail(request, pk):
     
     if request.method == 'POST' and request.user.is_authenticated:
         content = request.POST.get('content')
-        if content:
-            Comment.objects.create(
-                note=note,
-                author=request.user,
-                content=content
-            )
-            messages.success(request, 'Comment added successfully!')
+        rating = request.POST.get('rating')
+        if content and rating:
+            try:
+                rating = int(rating)
+                if 1 <= rating <= 5:
+                    Comment.objects.create(
+                        note=note,
+                        author=request.user,
+                        content=content,
+                        rating=rating
+                    )
+                    messages.success(request, 'Comment added successfully!')
+                else:
+                    messages.error(request, 'Rating must be between 1 and 5.')
+            except ValueError:
+                messages.error(request, 'Invalid rating value.')
             return redirect('notes:note_detail', pk=pk)
     
     comments = note.comments.all()
@@ -81,10 +90,16 @@ def note_detail(request, pk):
     })
 
 @login_required
-def download_note(request, pk):
+def note_download(request, pk):
     note = get_object_or_404(Note, pk=pk)
-    note.increment_download_count()
-    return FileResponse(note.file, as_attachment=True)
+    # Increment download count
+    note.download_count += 1
+    note.save()
+    
+    # Return the file for download
+    response = FileResponse(note.file.open('rb'))
+    response['Content-Disposition'] = f'attachment; filename="{note.file.name}"'
+    return response
 
 @login_required
 def edit_note(request, pk):

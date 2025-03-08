@@ -19,3 +19,4 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ['author', 'note', 'created_at']
     list_filter = ['created_at', 'author']
     search_fields = ['content', 'author__username', 'note__title']
+
