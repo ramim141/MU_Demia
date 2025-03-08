@@ -40,8 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'widget_tweaks',
     'accounts',
     'core',
+    'notes',
 ]
 
 MIDDLEWARE = [
@@ -142,3 +144,6 @@ EMAIL_HOST_USER = 'ahramu584@gmail.com'
 EMAIL_HOST_PASSWORD = 'glawawgjrlnautim'  # App password from Google Account
 DEFAULT_FROM_EMAIL = 'ahramu584@gmail.com'
 EMAIL_TIMEOUT = 20  # Timeout in seconds
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

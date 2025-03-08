@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -8,7 +8,8 @@ from django.core.mail import EmailMessage, send_mail
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
-from .forms import SignUpForm, LoginForm
+from django.contrib.auth.decorators import login_required
+from .forms import SignUpForm, LoginForm, ProfileUpdateForm, CustomPasswordChangeForm
 from .models import CustomUser
 from django.urls import reverse
 import logging
@@ -144,3 +145,32 @@ def resend_verification(request):
         messages.error(request, 'No account found with this email address.')
     
     return redirect('accounts:login')
+
+@login_required
+def profile_view(request):
+    if request.method == 'POST':
+        form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile has been updated successfully!')
+            return redirect('accounts:profile')
+    else:
+        form = ProfileUpdateForm(instance=request.user)
+    
+    return render(request, 'accounts/profile.html', {
+        'form': form,
+        'password_form': CustomPasswordChangeForm(request.user)
+    })
+
+@login_required
+def update_password(request):
+    if request.method == 'POST':
+        form = CustomPasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('accounts:profile')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    return redirect('accounts:profile')
