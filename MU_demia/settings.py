@@ -30,7 +30,7 @@ ALLOWED_HOSTS = []
 # Authentication settings
 LOGIN_REDIRECT_URL = 'core:home'
 LOGOUT_REDIRECT_URL = 'core:home'
-LOGIN_URL = 'login'
+LOGIN_URL = 'accounts:login'
 # Application definition
 
 INSTALLED_APPS = [
@@ -133,10 +133,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
-# Email settings (example for Gmail)
+# Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'ahramu584@gmail.com'  # Replace with your email
-EMAIL_HOST_PASSWORD = 'glawawgjrlnautim'  # Replace with your app password
+EMAIL_HOST_USER = 'ahramu584@gmail.com'
+EMAIL_HOST_PASSWORD = 'glawawgjrlnautim'  # App password from Google Account
+DEFAULT_FROM_EMAIL = 'ahramu584@gmail.com'
+EMAIL_TIMEOUT = 20  # Timeout in seconds
