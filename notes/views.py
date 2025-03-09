@@ -5,6 +5,7 @@ from django.http import FileResponse, HttpResponseForbidden
 from django.db.models import Q
 from .models import Note, Subject, Comment
 from django.core.paginator import Paginator
+from django.db.models import Avg
 
 def note_list(request):
     subject = request.GET.get('subject')
@@ -63,6 +64,9 @@ def note_detail(request, pk):
     note = get_object_or_404(Note, pk=pk)
     note.increment_view_count()
     
+    average_rating = note.comments.aggregate(Avg('rating'))['rating__avg']
+    average_rating = round(average_rating, 2) if average_rating else 0
+    
     if request.method == 'POST' and request.user.is_authenticated:
         content = request.POST.get('content')
         rating = request.POST.get('rating')
@@ -86,7 +90,9 @@ def note_detail(request, pk):
     comments = note.comments.all()
     return render(request, 'notes/note_detail.html', {
         'note': note,
-        'comments': comments
+        'comments': comments,
+        'average_rating': average_rating
+        
     })
 
 @login_required
